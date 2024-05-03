@@ -1,0 +1,9 @@
+TERMUX_PKG_HOMEPAGE=http://www.deepin.org/
+TERMUX_PKG_DESCRIPTION=" Used to store public configuration files"
+TERMUX_PKG_LICENSE="BSD"
+TERMUX_PKG_MAINTAINER="bluesky <chenchongbiao@deepin.org>"
+TERMUX_PKG_VERSION=5.6.20
+TERMUX_PKG_SRCURL="https://github.com/linuxdeepin/dtkcommon/archive/refs/tags/${TERMUX_PKG_VERSION}.tar.gz"
+TERMUX_PKG_SHA256=ff25e4ce7db40c9697d59e4f9d60f41bacdfab157c6cfe1344ca702a07623a3c
+TERMUX_PKG_BUILD_DEPENDS="cmake"
+TERMUX_PKG_BUILD_IN_SRC=true
