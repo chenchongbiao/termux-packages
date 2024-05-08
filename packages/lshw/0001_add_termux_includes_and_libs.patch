@@ -1,0 +1,22 @@
+diff --git a/src/Makefile b/src/Makefile
+index ac726d0..381b608 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -23,7 +23,7 @@ export ZLIB
+ 
+ CXX?=$(CROSS_COMPILE)c++
+ PKG_CONFIG ?= pkg-config
+-INCLUDES=-I./core/
++INCLUDES=-I./core/ -I@TERMUX_PREFIX@/include
+ ifneq ($(NO_VERSION_CHECK), 1)
+ REMOTE_VERSION_CHECK?=-DREMOTE_VERSION_CHECK
+ endif
+@@ -40,7 +40,7 @@ ifneq ($(shell $(LD) --help 2| grep -- --as-needed), )
+ 	LDFLAGS+= -Wl,--as-needed
+ endif
+ LDSTATIC=-static
+-LIBS+=-llshw
++LIBS+=-llshw -landroid-glob
+ ifneq ($(NO_VERSION_CHECK), 1)
+ LIBS+=-lresolv
+ endif
