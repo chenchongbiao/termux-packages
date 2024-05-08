@@ -1,0 +1,13 @@
+diff --git a/GSettings/gsettings-qt.pro b/GSettings/gsettings-qt.pro
+index 218eeea..ea2083c 100644
+--- a/GSettings/gsettings-qt.pro
++++ b/GSettings/gsettings-qt.pro
+@@ -23,8 +23,4 @@ extra.path = $$installPath
+ extra.files += qmldir
+ INSTALLS += extra
+ 
+-qmltypes.path = $$installPath
+-qmltypes.files = plugins.qmltypes
+-qmltypes.extra = export LD_PRELOAD=../src/libgsettings-qt.so.1; $$[QT_INSTALL_BINS]/qmlplugindump -notrelocatable GSettings 1.0 .. > $(INSTALL_ROOT)/$$installPath/plugins.qmltypes
+-INSTALLS += qmltypes
+ 

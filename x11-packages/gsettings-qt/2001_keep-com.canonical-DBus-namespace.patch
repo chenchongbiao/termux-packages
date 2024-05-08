@@ -1,0 +1,125 @@
+Description: Revert upstream's decision to rename the DBus namespace.
+Author: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+Forwarded: https://gitlab.com/ubports/core/gsettings-qt/issues/1
+
+--- a/tests/cpptest.cpp
++++ b/tests/cpptest.cpp
+@@ -15,7 +15,7 @@
+ 
+ void TestDeferredDelete::initTestCase()
+ {
+-    settings = new QGSettings("com.ubports.gsettings.Test", QByteArray(), this);
++    settings = new QGSettings("com.canonical.gsettings.Test", QByteArray(), this);
+     dummy = new QObject;
+     connect(settings, &QGSettings::changed, dummy.data(), &QObject::deleteLater); // delete the dummy object upon any gsettings change
+ }
+--- a/tests/cpptest.pro
++++ b/tests/cpptest.pro
+@@ -11,7 +11,7 @@
+ 
+ schema.target = gschemas.compiled
+ schema.commands = glib-compile-schemas $$PWD
+-schema.depends = com.ubports.gsettings.test.gschema.xml
++schema.depends = com.canonical.gsettings.test.gschema.xml
+ QMAKE_EXTRA_TARGETS += schema
+ PRE_TARGETDEPS = gschemas.compiled
+ 
+--- a/tests/tests.pro
++++ b/tests/tests.pro
+@@ -9,7 +9,7 @@
+ 
+ schema.target = gschemas.compiled
+ schema.commands = glib-compile-schemas $$PWD
+-schema.depends = com.ubports.gsettings.test.gschema.xml
++schema.depends = com.canonical.gsettings.test.gschema.xml
+ QMAKE_EXTRA_TARGETS += schema
+ PRE_TARGETDEPS = gschemas.compiled
+ 
+--- a/tests/tst_GSettings.qml
++++ b/tests/tst_GSettings.qml
+@@ -10,7 +10,7 @@
+ 
+   GSettings {
+     id: settings
+-    schema.id: "com.ubports.gsettings.Test"
++    schema.id: "com.canonical.gsettings.Test"
+     // has to be "valueChanged" signal, not "changed"; the latter doesn't work reliably with the in-memory gsettings backend
+     onValueChanged: testCase.changes.push([key, value]);
+   }
+@@ -24,7 +24,7 @@
+   GSettings {
+     id: invalid_settings
+ 
+-    schema.id: "com.ubports.gsettings.NonExisting"
++    schema.id: "com.canonical.gsettings.NonExisting"
+   }
+ 
+   property string bindingTest: settings.testString
+--- /dev/null
++++ b/tests/com.canonical.gsettings.test.gschema.xml
+@@ -0,0 +1,31 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<schemalist>
++  <schema id="com.canonical.gsettings.Test" path="/com/canonical/gsettings/test/">
++    <key name="test-integer" type="i">
++      <default>42</default>
++    </key>
++    <key name="test-double" type="d">
++      <default>1.5</default>
++    </key>
++    <key name="test-boolean" type="b">
++      <default>false</default>
++    </key>
++    <key name="test-string" type="s">
++      <default>"hello"</default>
++    </key>
++    <key name="test-enum" type="s">
++      <choices>
++        <choice value='one'/>
++        <choice value='two'/>
++        <choice value='three'/>
++      </choices>
++      <default>'one'</default>
++    </key>
++    <key name="test-string-list" type="as">
++      <default>['one', 'two', 'three']</default>
++    </key>
++    <key name="test-map" type="a{ss}">
++      <default>{'foo': 'one', 'bar': 'two'}</default>
++    </key>
++  </schema>
++</schemalist>
+--- a/tests/com.ubports.gsettings.test.gschema.xml
++++ /dev/null
+@@ -1,31 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<schemalist>
+-  <schema id="com.ubports.gsettings.Test" path="/com/ubports/gsettings/test/">
+-    <key name="test-integer" type="i">
+-      <default>42</default>
+-    </key>
+-    <key name="test-double" type="d">
+-      <default>1.5</default>
+-    </key>
+-    <key name="test-boolean" type="b">
+-      <default>false</default>
+-    </key>
+-    <key name="test-string" type="s">
+-      <default>"hello"</default>
+-    </key>
+-    <key name="test-enum" type="s">
+-      <choices>
+-        <choice value='one'/>
+-        <choice value='two'/>
+-        <choice value='three'/>
+-      </choices>
+-      <default>'one'</default>
+-    </key>
+-    <key name="test-string-list" type="as">
+-      <default>['one', 'two', 'three']</default>
+-    </key>
+-    <key name="test-map" type="a{ss}">
+-      <default>{'foo': 'one', 'bar': 'two'}</default>
+-    </key>
+-  </schema>
+-</schemalist>
