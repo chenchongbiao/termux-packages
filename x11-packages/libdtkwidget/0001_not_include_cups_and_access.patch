@@ -1,0 +1,1142 @@
+diff --git a/dtkwidget.cmake b/dtkwidget.cmake
+index 622580e9..5494b12b 100644
+--- a/dtkwidget.cmake
++++ b/dtkwidget.cmake
+@@ -78,6 +78,10 @@ file(WRITE ${AUTOCONFIG} ${CONFIG_CONTENT})
+ 
+ file(GLOB_RECURSE PUBLIC_HEADERS "${PROJECT_SOURCE_DIR}/include/*.h")
+ 
++# 使用FILTER命令排除包含特定字符串的文件
++list(FILTER PUBLIC_HEADERS EXCLUDE REGEX ".*dprint.*")
++list(FILTER PUBLIC_HEADERS EXCLUDE REGEX ".*daccess.*")
++
+ list(APPEND PUBLIC_HEADERS ${D_HEADERS})
+ list(APPEND PUBLIC_HEADERS ${AUTOCONFIG})
+ 
+diff --git a/src/util/util.cmake b/src/util/util.cmake
+index 26369f07..f8edcb09 100644
+--- a/src/util/util.cmake
++++ b/src/util/util.cmake
+@@ -1,5 +1,7 @@
+ file(GLOB_RECURSE UTIL_HEADERS "${CMAKE_CURRENT_LIST_DIR}/*.h")
+ file(GLOB_RECURSE UTIL_SOURCES "${CMAKE_CURRENT_LIST_DIR}/*.cpp")
++# 使用FILTER命令排除包含特定字符串的文件
++list(FILTER UTIL_SOURCES EXCLUDE REGEX ".*daccess.*.cpp")
+ if(LINUX)
+   list(REMOVE_ITEM UTIL_SOURCES
+        ${CMAKE_CURRENT_LIST_DIR}/ddesktopservices_win.cpp
+diff --git a/src/widgets/dabstractdialog.cpp b/src/widgets/dabstractdialog.cpp
+index 57c29921..0f1fb7bc 100644
+--- a/src/widgets/dabstractdialog.cpp
++++ b/src/widgets/dabstractdialog.cpp
+@@ -53,7 +53,9 @@ void DAbstractDialogPrivate::init(bool blurIfPossible)
+         handle->setEnableSystemResize(false);
+ 
+         bgBlurWidget = new DBlurEffectWidget(q);
++#ifndef QT_NO_ACCESSIBILITY
+         bgBlurWidget->setAccessibleName("DAbstractDialogBlurEffectWidget");
++#endif
+         bgBlurWidget->lower();
+         bgBlurWidget->setBlendMode(DBlurEffectWidget::BehindWindowBlend);
+         bgBlurWidget->setFull(true);
+diff --git a/src/widgets/dalertcontrol.cpp b/src/widgets/dalertcontrol.cpp
+index 40eb413e..ef89c54a 100644
+--- a/src/widgets/dalertcontrol.cpp
++++ b/src/widgets/dalertcontrol.cpp
+@@ -213,12 +213,16 @@ void DAlertControl::showAlertMessage(const QString &text, QWidget *follower, int
+     if (!d->tooltip) {
+         d->tooltip = new DToolTip(text);
+         d->tooltip->setObjectName("AlertTooltip");
++#ifndef QT_NO_ACCESSIBILITY
+         d->tooltip->setAccessibleName("DAlertControlAlertToolTip");
++#endif
+         d->tooltip->setForegroundRole(DPalette::TextWarning);
+         d->tooltip->setWordWrap(true);
+ 
+         d->frame = new DFloatingWidget;
++#ifndef QT_NO_ACCESSIBILITY
+         d->frame->setAccessibleName("DAlertControlFloatingWidget");
++#endif
+         d->frame->setFramRadius(DStyle::pixelMetric(d->target->style(), DStyle::PM_FrameRadius));
+         d->frame->setBackgroundRole(QPalette::ToolTipBase);
+         d->frame->setWidget(d->tooltip);
+diff --git a/src/widgets/dapplication.cpp b/src/widgets/dapplication.cpp
+index 68747388..f8d7a6bf 100644
+--- a/src/widgets/dapplication.cpp
++++ b/src/widgets/dapplication.cpp
+@@ -1508,19 +1508,19 @@ void DApplication::handleQuitAction()
+     quit();
+ }
+ 
+-static inline bool basePrintPropertiesDialog(const QWidget *w)
+-{
+-    while (w) {
+-        if (w->inherits("QPrintPropertiesDialog")
+-                || w->inherits("QPageSetupDialog")) {
+-            return true;
+-        }
+-
+-        w = w->parentWidget();
+-    }
+-
+-    return false;
+-}
++// static inline bool basePrintPropertiesDialog(const QWidget *w)
++// {
++//     while (w) {
++//         if (w->inherits("QPrintPropertiesDialog")
++//                 || w->inherits("QPageSetupDialog")) {
++//             return true;
++//         }
++
++//         w = w->parentWidget();
++//     }
++
++//     return false;
++// }
+ 
+ bool DApplication::notify(QObject *obj, QEvent *event)
+ {
+diff --git a/src/widgets/darrowbutton.cpp b/src/widgets/darrowbutton.cpp
+index 6761fbcf..c02fb1a2 100644
+--- a/src/widgets/darrowbutton.cpp
++++ b/src/widgets/darrowbutton.cpp
+@@ -64,20 +64,26 @@ DArrowButton::DArrowButton(QWidget *parent)
+     setFixedSize(IMAGE_BUTTON_WIDTH, BUTTON_HEIGHT);
+ 
+     m_normalLabel = new ArrowButtonIcon(this);
++#ifndef QT_NO_ACCESSIBILITY
+     m_normalLabel->setAccessibleName("DArrowButtonNormalLabel");
++#endif
+     m_normalLabel->setObjectName("ArrowButtonIconNormal");
+     m_normalLabel->setFixedSize(size());
+     m_normalLabel->move(0, 0);
+ 
+     m_hoverLabel = new ArrowButtonIcon(this);
++#ifndef QT_NO_ACCESSIBILITY
+     m_hoverLabel->setAccessibleName("DArrowButtonHoverLabel");
++#endif
+     m_hoverLabel->setObjectName("ArrowButtonIconHover");
+     m_hoverLabel->setFixedSize(size());
+     m_hoverLabel->move(0, 0);
+     m_hoverLabel->setVisible(false);
+ 
+     m_pressLabel = new ArrowButtonIcon(this);
++#ifndef QT_NO_ACCESSIBILITY
+     m_pressLabel->setAccessibleName("DArrowButtonPressedLabel");
++#endif
+     m_pressLabel->setObjectName("ArrowButtonIconPress");
+     m_pressLabel->setFixedSize(size());
+     m_pressLabel->move(0, 0);
+diff --git a/src/widgets/darrowlinedrawer.cpp b/src/widgets/darrowlinedrawer.cpp
+index 0cf11dc2..0e614f49 100644
+--- a/src/widgets/darrowlinedrawer.cpp
++++ b/src/widgets/darrowlinedrawer.cpp
+@@ -38,7 +38,9 @@ namespace HeaderLine {
+     {
+         m_arrowButton = new DIconButton(DStyle::SP_ReduceElement, this);
+         m_arrowButton->setFlat(true);
++#ifndef QT_NO_ACCESSIBILITY
+         m_arrowButton->setAccessibleName("ArrowHeaderArrowButton");
++#endif
+         setExpand(false);
+         connect(m_arrowButton, &DIconButton::clicked, this, &ArrowHeaderLine::mousePress);
+         setContent(m_arrowButton);
+@@ -115,7 +117,9 @@ DArrowLineDrawer::DArrowLineDrawer(QWidget *parent)
+     D_D(DArrowLineDrawer);
+     d->headerLine = new ArrowHeaderLine(this);
+     d->headerLine->setExpand(expand());
++#ifndef QT_NO_ACCESSIBILITY
+     d->headerLine->setAccessibleName("DArrowLineDrawerHeaderLine");
++#endif
+     connect(d->headerLine, &ArrowHeaderLine::mousePress, [=]{
+         setExpand(!expand());
+     });
+diff --git a/src/widgets/darrowrectangle.cpp b/src/widgets/darrowrectangle.cpp
+index 9fb56dda..1dbb04c7 100644
+--- a/src/widgets/darrowrectangle.cpp
++++ b/src/widgets/darrowrectangle.cpp
+@@ -1247,7 +1247,9 @@ void DArrowRectanglePrivate::init(DArrowRectangle::FloatMode mode)
+ 
+         m_blurBackground = new DBlurEffectWidget(q);
+         m_blurBackground->setBlendMode(DBlurEffectWidget::BehindWindowBlend);
++#ifndef QT_NO_ACCESSIBILITY
+         m_blurBackground->setAccessibleName("DArrowRectangleBlurBackground");
++#endif
+ 
+         m_wmHelper = DWindowManagerHelper::instance();
+ 
+diff --git a/src/widgets/dbaseexpand.cpp b/src/widgets/dbaseexpand.cpp
+index d5e1b003..76093902 100644
+--- a/src/widgets/dbaseexpand.cpp
++++ b/src/widgets/dbaseexpand.cpp
+@@ -46,18 +46,26 @@ DBaseExpandPrivate::DBaseExpandPrivate(DBaseExpand *qq)
+     m_hSeparator = new DHorizontalLine();
+     m_bottom_separator = new DHorizontalLine;
+     m_bottom_separator->hide();
++#ifndef QT_NO_ACCESSIBILITY
+     m_hSeparator->setAccessibleName("DBaseExpandHorizontalSeparator");
++#endif
++#ifndef QT_NO_ACCESSIBILITY
+     m_bottom_separator->setAccessibleName("DBaseExpandBottomSeparator");
++#endif
+ 
+     qq->connect(qq, &DBaseExpand::expandChange, m_bottom_separator, &QWidget::setVisible);
+ 
+     m_contentLoader = new ContentLoader();
+     m_contentLoader->setFixedHeight(0); // default to not expanded.
++#ifndef QT_NO_ACCESSIBILITY
+     m_contentLoader->setAccessibleName("DBaseExpandContentLoader");
++#endif
+ 
+     m_boxWidget = new DVBoxWidget;
+     m_contentLayout = m_boxWidget->layout();
++#ifndef QT_NO_ACCESSIBILITY
+     m_boxWidget->setAccessibleName("DBaseExpandVBoxWidget");
++#endif
+ 
+     QVBoxLayout *layout_contentLoader = new QVBoxLayout(m_contentLoader);
+ 
+diff --git a/src/widgets/dcircleprogress.cpp b/src/widgets/dcircleprogress.cpp
+index 2ddd9252..bb29b661 100644
+--- a/src/widgets/dcircleprogress.cpp
++++ b/src/widgets/dcircleprogress.cpp
+@@ -18,11 +18,15 @@ DCircleProgressPrivate::DCircleProgressPrivate(DCircleProgress *q)
+     m_topLabel.setAttribute(Qt::WA_TranslucentBackground);
+     m_topLabel.setAlignment(Qt::AlignCenter);
+     m_topLabel.setObjectName("TopLabel");
++#ifndef QT_NO_ACCESSIBILITY
+     m_topLabel.setAccessibleName("DCircleProgressTopLabel");
++#endif
+     m_bottomLabel.setAttribute(Qt::WA_TranslucentBackground);
+     m_bottomLabel.setAlignment(Qt::AlignCenter);
+     m_bottomLabel.setObjectName("BottomLabel");
++#ifndef QT_NO_ACCESSIBILITY
+     m_bottomLabel.setAccessibleName("DCircleProgressBottomLabel");
++#endif
+     m_bottomLabel.hide();
+ 
+     QBoxLayout *mainLayout = new QVBoxLayout;
+diff --git a/src/widgets/dcrumbedit.cpp b/src/widgets/dcrumbedit.cpp
+index 41bb51f8..30c3f50c 100644
+--- a/src/widgets/dcrumbedit.cpp
++++ b/src/widgets/dcrumbedit.cpp
+@@ -297,11 +297,21 @@ public:
+         panelFrame = new DCrumbEditPanelFrame(qq);
+         panelFrame->stackUnder(qq->viewport());
+ 
++#ifndef QT_NO_ACCESSIBILITY
+         widgetTop->setAccessibleName("DCrumbEditTopWidget");
++#endif
++#ifndef QT_NO_ACCESSIBILITY
+         widgetBottom->setAccessibleName("DCrumbEditBottomWidget");
++#endif
++#ifndef QT_NO_ACCESSIBILITY
+         widgetLeft->setAccessibleName("DCrumbEditLeftWidget");
++#endif
++#ifndef QT_NO_ACCESSIBILITY
+         widgetRight->setAccessibleName("DCrumbEditRightWidget");
++#endif
++#ifndef QT_NO_ACCESSIBILITY
+         panelFrame->setAccessibleName("DCrumbEditPanelFrame");
++#endif
+     }
+ 
+     void registerHandler(QAbstractTextDocumentLayout *layout)
+@@ -642,7 +652,11 @@ DCrumbEdit::DCrumbEdit(QWidget *parent)
+     int frameRadius = DStyle::pixelMetric(style(), DStyle::PM_FrameRadius);
+     int margins = DStyle::pixelMetric(style(), DStyle::PM_FrameMargins);
+     viewport()->setAutoFillBackground(false);
++
++
++#ifndef QT_NO_ACCESSIBILITY
+     viewport()->setAccessibleName("DCrumbViewport");
++#endif
+     setFrameShape(QFrame::NoFrame);
+     int margin = frameRadius / 2 + margins + 2;
+     setViewportMargins(margin, margin, margin, margin);
+diff --git a/src/widgets/ddialog.cpp b/src/widgets/ddialog.cpp
+index dd0f4a1a..183b41ae 100644
+--- a/src/widgets/ddialog.cpp
++++ b/src/widgets/ddialog.cpp
+@@ -66,7 +66,9 @@ void DDialogPrivate::init()
+     // TopLayout--TextLabel
+     titleLabel = new QLabel;
+     titleLabel->setObjectName("TitleLabel");
++#ifndef QT_NO_ACCESSIBILITY
+     titleLabel->setAccessibleName("DDialogTitleLabel");
++#endif
+     titleLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
+     titleLabel->setWordWrap(true);
+     titleLabel->setAlignment(Qt::AlignCenter);
+@@ -80,7 +82,9 @@ void DDialogPrivate::init()
+     messageLabel = new QLabel;
+     fontManager->bind(messageLabel, DFontSizeManager::T6, QFont::Medium);
+     messageLabel->setObjectName("MessageLabel");
++#ifndef QT_NO_ACCESSIBILITY
+     messageLabel->setAccessibleName("DDialogMessageLabel");
++#endif
+     messageLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
+     messageLabel->setWordWrap(true);
+     messageLabel->setAlignment(Qt::AlignCenter);
+@@ -113,7 +117,9 @@ void DDialogPrivate::init()
+     }
+ 
+     titleBar = new DTitlebar();
++#ifndef QT_NO_ACCESSIBILITY
+     titleBar->setAccessibleName("DDialogTitleBar");
++#endif
+     titleBar->setIcon(icon); //设置标题icon
+     titleBar->setMenuVisible(false);
+     titleBar->setBackgroundTransparent(true);
+@@ -584,7 +590,9 @@ void DDialog::insertButton(int index, const QString &text, bool isDefault, Butto
+ 
+     button->setText(text);
+     button->setObjectName("ActionButton");
++#ifndef QT_NO_ACCESSIBILITY
+     button->setAccessibleName(text);
++#endif
+     button->setAttribute(Qt::WA_NoMousePropagation);
+ 
+     insertButton(index, button, isDefault);
+diff --git a/src/widgets/ddrawer.cpp b/src/widgets/ddrawer.cpp
+index e5501605..7fe0d8f4 100644
+--- a/src/widgets/ddrawer.cpp
++++ b/src/widgets/ddrawer.cpp
+@@ -47,17 +47,25 @@ void DDrawerPrivate::init()
+     m_hSeparator = new DHorizontalLine();
+     m_bottom_separator = new DHorizontalLine;
+     m_bottom_separator->hide();
++#ifndef QT_NO_ACCESSIBILITY
+     m_hSeparator->setAccessibleName("DDrawerHorizontalSeparator");
++#endif
++#ifndef QT_NO_ACCESSIBILITY
+     m_bottom_separator->setAccessibleName("DDrawerBottomSeparator");
++#endif
+ 
+     qq->connect(qq, &DDrawer::expandChange, m_bottom_separator, &QWidget::setVisible);
+ 
+     m_contentLoader = new ContentBox();
+     m_contentLoader->setFixedHeight(0); // default to not expanded.
++#ifndef QT_NO_ACCESSIBILITY
+     m_contentLoader->setAccessibleName("DDrawerContentBox");
++#endif
+ 
+     m_boxWidget = new DVBoxWidget;
++#ifndef QT_NO_ACCESSIBILITY
+     m_boxWidget->setAccessibleName("DDrawerVBoxWidget");
++#endif
+     m_contentLayout = m_boxWidget->layout();
+ 
+     QVBoxLayout *layout_contentLoader = new QVBoxLayout(m_contentLoader);
+diff --git a/src/widgets/dfilechooseredit.cpp b/src/widgets/dfilechooseredit.cpp
+index 49c2f143..279b5baf 100644
+--- a/src/widgets/dfilechooseredit.cpp
++++ b/src/widgets/dfilechooseredit.cpp
+@@ -242,7 +242,9 @@ void DFileChooserEditPrivate::init()
+ 
+     QList<QWidget *> list;
+     DSuggestButton *btn = new DSuggestButton(nullptr);
++#ifndef QT_NO_ACCESSIBILITY
+     btn->setAccessibleName("DFileChooserEditSuggestButton");
++#endif
+     btn->setIcon(DStyleHelper(q->style()).standardIcon(DStyle::SP_SelectElement, nullptr));
+ 
+     btn->setFixedWidth(defaultButtonWidth());
+diff --git a/src/widgets/dipv4lineedit.cpp b/src/widgets/dipv4lineedit.cpp
+index 224f68b6..ca11bffb 100644
+--- a/src/widgets/dipv4lineedit.cpp
++++ b/src/widgets/dipv4lineedit.cpp
+@@ -33,7 +33,9 @@ void DIpv4LineEditPrivate::init()
+     q->setContextMenuPolicy(Qt::NoContextMenu);
+     // A frame with rounded corners is a self-drawn background that covers the text of the edit control behind it.
+     DFrame *frame = new DFrame(q);
++#ifndef QT_NO_ACCESSIBILITY
+     frame->setAccessibleName("DIpv4LineEditFrame");
++#endif
+     frame->setFrameRounded(true);
+     frame->setFrameShape(QFrame::NoFrame);
+     editMainWidget = frame;
+diff --git a/src/widgets/dkeysequenceedit.cpp b/src/widgets/dkeysequenceedit.cpp
+index a99e17ae..5db68657 100644
+--- a/src/widgets/dkeysequenceedit.cpp
++++ b/src/widgets/dkeysequenceedit.cpp
+@@ -30,7 +30,9 @@ public:
+         : DFrame(parent)
+     {
+         label = new DLabel(text);
++#ifndef QT_NO_ACCESSIBILITY
+         label->setAccessibleName("DKeyLabelTextLabel");
++#endif
+         QVBoxLayout *layout = new QVBoxLayout(this);
+         layout->setContentsMargins(layout->contentsMargins().left(), 0, layout->contentsMargins().right(), 0);
+         layout->setSpacing(0);
+@@ -329,7 +331,9 @@ void DKeySequenceEditPrivate::init()
+     QHBoxLayout *layout = new QHBoxLayout(q);
+     rightWidget = new DKeyWidget(q);
+ 
++#ifndef QT_NO_ACCESSIBILITY
+     rightWidget->setAccessibleName("DKeySequenceEditKeyWidget");
++#endif
+     layout->setContentsMargins(0, 0, 0, 0);
+     layout->setSpacing(0);
+ 
+@@ -354,7 +358,9 @@ void DKeyWidget::setKeyName(const QStringList &keyList)
+ 
+     for (QString key : keyList) {
+         DKeyLabel *label = new DKeyLabel(key);
++#ifndef QT_NO_ACCESSIBILITY
+         label->setAccessibleName(QString("DKeyWidgetKeyLabelAt").append(key));
++#endif
+         label->setMinimumHeight(DSizeModeHelper::element(18, 24));
+         layout()->addWidget(label);
+         labelList.append(label);
+diff --git a/src/widgets/dlicensedialog.cpp b/src/widgets/dlicensedialog.cpp
+index 76c0f11e..5e8ef56b 100644
+--- a/src/widgets/dlicensedialog.cpp
++++ b/src/widgets/dlicensedialog.cpp
+@@ -72,7 +72,9 @@ void DLicenseDialogPrivate::init()
+     q->setFixedSize(900, 800);
+ 
+     titleBar = new DTitlebar();
++#ifndef QT_NO_ACCESSIBILITY
+     titleBar->setAccessibleName("DLicenseDialogTitleBar");
++#endif
+     titleBar->setMenuVisible(false);
+     titleBar->setBackgroundTransparent(true);
+     titleBar->setTitle(QObject::tr("Open-Source Software"));
+diff --git a/src/widgets/dlineedit.cpp b/src/widgets/dlineedit.cpp
+index ebb377e0..bfed628d 100644
+--- a/src/widgets/dlineedit.cpp
++++ b/src/widgets/dlineedit.cpp
+@@ -221,7 +221,9 @@ void DLineEdit::setRightWidgets(const QList<QWidget *> &list)
+         return;
+ 
+     d->rightWidget = new QWidget;
++#ifndef QT_NO_ACCESSIBILITY
+     d->rightWidget->setAccessibleName("DLineEditRightWidget");
++#endif
+     QHBoxLayout *layout = new QHBoxLayout(d->rightWidget);
+     layout->setContentsMargins(0, 0, 0, 0);
+     d->hLayout->addWidget(d->rightWidget);
+@@ -269,8 +271,11 @@ void DLineEdit::setClearButtonEnabled(bool enable)
+     d->lineEdit->setClearButtonEnabled(enable);
+ 
+     if (enable)
+-        if (QToolButton *lineEditClearButton = d->lineEdit->findChild<QToolButton *>())
++        if (QToolButton *lineEditClearButton = d->lineEdit->findChild<QToolButton *>()) {
++#ifndef QT_NO_ACCESSIBILITY
+             lineEditClearButton->setAccessibleName("DLineEditClearButton");
++#endif            
++        }
+ }
+ 
+ /*!
+@@ -723,7 +728,9 @@ void DLineEditPrivate::init()
+     hLayout->addWidget(lineEdit);
+ 
+     lineEdit->installEventFilter(q);
++#ifndef QT_NO_ACCESSIBILITY
+     lineEdit->setAccessibleName("DLineEditChildLineEdit");
++#endif
+     q->setClearButtonEnabled(true);
+ 
+     q->connect(lineEdit, &QLineEdit::textChanged, q, &DLineEdit::textChanged);
+diff --git a/src/widgets/dloadingindicator.cpp b/src/widgets/dloadingindicator.cpp
+index c15e64dc..40377da4 100644
+--- a/src/widgets/dloadingindicator.cpp
++++ b/src/widgets/dloadingindicator.cpp
+@@ -27,7 +27,9 @@ void DLoadingIndicatorPrivate::init()
+     q->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+     q->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+     q->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
++#ifndef QT_NO_ACCESSIBILITY
+     q->viewport()->setAccessibleName("DLoadingIndicatorViewport");
++#endif
+ 
+     rotateAni.setDuration(1000);
+     rotateAni.setEasingCurve(QEasingCurve::OutInQuad);
+diff --git a/src/widgets/dmainwindow.cpp b/src/widgets/dmainwindow.cpp
+index d0232e6a..70301f7e 100644
+--- a/src/widgets/dmainwindow.cpp
++++ b/src/widgets/dmainwindow.cpp
+@@ -41,7 +41,9 @@ DMainWindowPrivate::DMainWindowPrivate(DMainWindow *qq)
+     : DObjectPrivate(qq)
+ {
+     titlebar = new DTitlebar(qq);
++#ifndef QT_NO_ACCESSIBILITY
+     titlebar->setAccessibleName("DMainWindowTitlebar");
++#endif
+     auto noTitlebarEnabled = []{
+         QFunctionPointer enableNoTitlebar = qApp->platformFunction("_d_isEnableNoTitlebar");
+         bool enabled = qApp->platformName() == "dwayland" || qApp->property("_d_isDwayland").toBool();
+@@ -60,7 +62,9 @@ DMainWindowPrivate::DMainWindowPrivate(DMainWindow *qq)
+     }
+ 
+     qq->setMinimumWidth(titlebar->minimumSizeHint().width());
++#ifndef QT_NO_ACCESSIBILITY
+     qq->setAccessibleName("DMainWindow");
++#endif
+ }
+ 
+ void DMainWindowPrivate::init()
+@@ -794,7 +798,9 @@ void DMainWindow::setTitlebarShadowEnabled(bool titlebarShadowEnabled)
+ 
+     if (titlebarShadowEnabled) {
+         d->titleShadow = new DShadowLine(this);
++#ifndef QT_NO_ACCESSIBILITY
+         d->titleShadow->setAccessibleName("DMainWindowTitleShadowLine");
++#endif
+         d->titleShadow->setAttribute(Qt::WA_AlwaysStackOnTop);
+         d->updateTitleShadowGeometry();
+     } else {
+diff --git a/src/widgets/dmpriscontrol.cpp b/src/widgets/dmpriscontrol.cpp
+index 03549d30..e6adeada 100644
+--- a/src/widgets/dmpriscontrol.cpp
++++ b/src/widgets/dmpriscontrol.cpp
+@@ -130,11 +130,17 @@ void DMPRISControlPrivate::init()
+ 
+     setButtonSize();
+     m_prevBtn->setIcon(DDciIcon::fromTheme("play_previous"));
++#ifndef QT_NO_ACCESSIBILITY
+     m_prevBtn->setAccessibleName("DMPRISControlPrevFloatingButton");
++#endif
+     m_playBtn->setIcon(DDciIcon::fromTheme("play_start"));
++#ifndef QT_NO_ACCESSIBILITY
+     m_playBtn->setAccessibleName("DMPRISControlPlayFloatingButton");
++#endif
+     m_nextBtn->setIcon(DDciIcon::fromTheme("play_next"));
++#ifndef QT_NO_ACCESSIBILITY
+     m_nextBtn->setAccessibleName("DMPRISControlNextFloatingButton");
++#endif
+     m_prevBtn->setIconSize(IconSize);
+     m_playBtn->setIconSize(IconSize);
+     m_nextBtn->setIconSize(IconSize);
+@@ -146,9 +152,13 @@ void DMPRISControlPrivate::init()
+     m_nextBtn->setAutoExclusive(true);
+ 
+     m_title->setAlignment(Qt::AlignCenter);
++#ifndef QT_NO_ACCESSIBILITY
+     m_title->setAccessibleName("DMPRISControlTitleLabel");
++#endif
+     m_picture->setFixedSize(200, 200);
++#ifndef QT_NO_ACCESSIBILITY
+     m_picture->setAccessibleName("DMPRISControlPictureLabel");
++#endif
+     m_prevBtn->setObjectName("PrevBtn");
+     m_playBtn->setObjectName("PlayBtn");
+     m_nextBtn->setObjectName("NextBtn");
+@@ -166,8 +176,12 @@ void DMPRISControlPrivate::init()
+     m_titleScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+     m_titleScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+     m_titleScrollArea->setStyleSheet("background-color:transparent;");
++#ifndef QT_NO_ACCESSIBILITY
+     m_titleScrollArea->setAccessibleName("DMPRISControlScrollArea");
++#endif
++#ifndef QT_NO_ACCESSIBILITY
+     m_titleScrollArea->viewport()->setAccessibleName("DMPRISControlScrollAreaViewPort");
++#endif
+ 
+ #ifdef QT_DEBUG
+     m_title->setText("MPRIS Title");
+@@ -180,7 +194,9 @@ void DMPRISControlPrivate::init()
+     controlLayout->addWidget(m_nextBtn);
+     controlLayout->setContentsMargins(0, 5, 0, 0);
+     m_controlWidget->setLayout(controlLayout);
++#ifndef QT_NO_ACCESSIBILITY
+     m_controlWidget->setAccessibleName("DMPRISControlCentralWidget");
++#endif
+ 
+     QVBoxLayout *centralLayout = new QVBoxLayout;
+     centralLayout->addWidget(m_titleScrollArea);
+diff --git a/src/widgets/dpasswordedit.cpp b/src/widgets/dpasswordedit.cpp
+index ba1b05d2..4d3f7e85 100644
+--- a/src/widgets/dpasswordedit.cpp
++++ b/src/widgets/dpasswordedit.cpp
+@@ -132,7 +132,9 @@ void DPasswordEditPrivate::init()
+ 
+     QList<QWidget *> list;
+     togglePasswordVisibleButton = new DSuggestButton;
++#ifndef QT_NO_ACCESSIBILITY
+     togglePasswordVisibleButton->setAccessibleName("DPasswordEditPasswordVisibleButton");
++#endif
+     togglePasswordVisibleButton->setIcon(DStyle::standardIcon(q->style(), DStyle::SP_ShowPassword));
+     togglePasswordVisibleButton->setFixedWidth(defaultButtonWidth());
+     togglePasswordVisibleButton->setIconSize(defaultIconSize());
+diff --git a/src/widgets/dpicturesequenceview.cpp b/src/widgets/dpicturesequenceview.cpp
+index 046ed29c..fda97904 100644
+--- a/src/widgets/dpicturesequenceview.cpp
++++ b/src/widgets/dpicturesequenceview.cpp
+@@ -42,7 +42,9 @@ void DPictureSequenceViewPrivate::init()
+     q->setFrameShape(QFrame::NoFrame);
+ 
+     q->connect(refreshTimer, SIGNAL(timeout()), q, SLOT(_q_refreshPicture()));
++#ifndef QT_NO_ACCESSIBILITY
+     q->viewport()->setAccessibleName("DPictureSequenceViewport");
++#endif
+ }
+ 
+ void DPictureSequenceViewPrivate::play()
+diff --git a/src/widgets/dsearchedit.cpp b/src/widgets/dsearchedit.cpp
+index afafab3a..a1873ed7 100644
+--- a/src/widgets/dsearchedit.cpp
++++ b/src/widgets/dsearchedit.cpp
+@@ -287,7 +287,9 @@ void DSearchEditPrivate::init()
+     iconbtn->setFlat(true);
+     iconbtn->setFocusPolicy(Qt::NoFocus);
+     iconbtn->setAttribute(Qt::WA_TransparentForMouseEvents);
++#ifndef QT_NO_ACCESSIBILITY
+     iconbtn->setAccessibleName("DSearchEditIconButton");
++#endif
+ 
+     placeHolder = qApp->translate("DSearchEdit", "Search");
+ 
+@@ -305,7 +307,9 @@ void DSearchEditPrivate::init()
+ 
+     label->setPalette(pe);
+     label->setText(placeHolder);
++#ifndef QT_NO_ACCESSIBILITY
+     label->setAccessibleName("DSearchEditPlaceHolderLabel");
++#endif
+ 
+     q->connect(q, SIGNAL(focusChanged(bool)), q, SLOT(_q_toEditMode(bool)));
+     q->connect(q, &DLineEdit::textChanged, q, [ = ](QString text) {
+@@ -317,7 +321,9 @@ void DSearchEditPrivate::init()
+ 
+     iconWidget = new QWidget;
+     iconWidget->setObjectName("iconWidget");
++#ifndef QT_NO_ACCESSIBILITY
+     iconWidget->setAccessibleName("DSearchEditIconWidget");
++#endif
+     QHBoxLayout *center_layout = new QHBoxLayout(iconWidget);
+     center_layout->setContentsMargins(0, 0, 0, 0);
+     center_layout->setSpacing(6);
+diff --git a/src/widgets/dsettingsdialog.cpp b/src/widgets/dsettingsdialog.cpp
+index 64312795..399fd899 100644
+--- a/src/widgets/dsettingsdialog.cpp
++++ b/src/widgets/dsettingsdialog.cpp
+@@ -67,19 +67,27 @@ DSettingsDialog::DSettingsDialog(QWidget *parent) :
+     DFrame *rightFrame = new DFrame;
+     rightFrame->setLineWidth(0);
+     rightFrame->setContentsMargins(10, 10, 10, 10);
++#ifndef QT_NO_ACCESSIBILITY
+     rightFrame->setAccessibleName("DSettingDialogRightFrame");
++#endif
+ 
+     QVBoxLayout *rightlayout = new QVBoxLayout(rightFrame);
+     d->frameBar = new DTitlebar;
+     d->frameBar->setMenuVisible(false);
+     d->frameBar->setTitle(QString());
++#ifndef QT_NO_ACCESSIBILITY
+     d->frameBar->setAccessibleName("DSettingTitleBar");
++#endif
+ 
+     d->leftFrame->setObjectName("LeftFrame");
++#ifndef QT_NO_ACCESSIBILITY
+     d->leftFrame->setAccessibleName("DSettingDialogLeftFrame");
++#endif
+     d->content->setObjectName("RightFrame");
+     d->content->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
++#ifndef QT_NO_ACCESSIBILITY
+     d->content->setAccessibleName("DSettingDialogContentWidget");
++#endif
+ 
+     rightlayout->setContentsMargins(0, 0, 0, 0);
+     rightlayout->addWidget(d->content);
+diff --git a/src/widgets/dsettingswidgetfactory.cpp b/src/widgets/dsettingswidgetfactory.cpp
+index 1f5acff4..259ff861 100644
+--- a/src/widgets/dsettingswidgetfactory.cpp
++++ b/src/widgets/dsettingswidgetfactory.cpp
+@@ -68,8 +68,12 @@ public:
+         QString str = qApp->translate("DSettingsDialog", "This shortcut conflicts with %1, click on Add to make this shortcut effective immediately")
+                       .arg(QString("<span style=\"color: rgba(255, 90, 90, 1);\">%1 %2</span>").arg(text).arg(QString("[%1]").arg(edit->getKeySequence(key))));
+         setMessage(str);
++#ifndef QT_NO_ACCESSIBILITY
+         cancel->setAccessibleName("ChangeDDialogCancelButton");
++#endif
++#ifndef QT_NO_ACCESSIBILITY
+         replace->setAccessibleName("ChangeDDialogReplaceButton");
++#endif
+         insertButton(1, cancel);
+         insertButton(1, replace);
+         connect(replace, &DSuggestButton::clicked, [ = ] {  //替换
+@@ -157,7 +161,9 @@ QWidget *DSettingsWidgetFactory::createTwoColumWidget(const QByteArray &translat
+ {
+     auto optionFrame = new QWidget;
+     optionFrame->setObjectName("OptionFrame");
++#ifndef QT_NO_ACCESSIBILITY
+     optionFrame->setAccessibleName("OptionFrame");
++#endif
+ 
+     auto optionLayout = new QFormLayout(optionFrame);
+     optionLayout->setContentsMargins(0, 0, 0, 0);
+@@ -198,7 +204,9 @@ QPair<QWidget *, QWidget *> createShortcutEditOptionHandle(DSettingsWidgetFactor
+     auto rightWidget = new KeySequenceEdit(option);
+ 
+     rightWidget->setObjectName("OptionShortcutEdit");
++#ifndef QT_NO_ACCESSIBILITY
+     rightWidget->setAccessibleName("OptionShortcutEdit");
++#endif
+     rightWidget->ShortcutDirection(Qt::AlignLeft);
+ 
+     auto optionValue = option->value();
+@@ -212,7 +220,9 @@ QPair<QWidget *, QWidget *> createShortcutEditOptionHandle(DSettingsWidgetFactor
+ 
+         if (shortcutMap.value(keyseq)) {
+             ChangeDDialog frame(keyseq, rightWidget, rightWidget->text());
++#ifndef QT_NO_ACCESSIBILITY
+             frame.setAccessibleName("ChangeDDialog");
++#endif
+             frame.exec();
+         } else {
+             shortcutMap.remove(shortcutMap.key(rightWidget));
+@@ -267,7 +277,9 @@ QPair<QWidget *, QWidget *> createCheckboxOptionHandle(QObject *opt)
+     auto rightWidget = new QCheckBox(trName);
+ 
+     rightWidget->setObjectName("OptionCheckbox");
++#ifndef QT_NO_ACCESSIBILITY
+     rightWidget->setAccessibleName("OptionCheckbox");
++#endif
+     rightWidget->setChecked(option->value().toBool());
+ 
+     option->connect(rightWidget, &QCheckBox::stateChanged,
+@@ -291,7 +303,9 @@ QPair<QWidget *, QWidget *> createLineEditOptionHandle(QObject *opt)
+     auto trName = DWIDGET_NAMESPACE::tr(translateContext, value.toStdString().c_str());
+     auto rightWidget = new QLineEdit(trName);
+     rightWidget->setObjectName("OptionLineEdit");
++#ifndef QT_NO_ACCESSIBILITY
+     rightWidget->setAccessibleName("OptionLineEdit");
++#endif
+     rightWidget->setText(option->value().toString());
+ 
+     option->connect(rightWidget, &QLineEdit::editingFinished,
+@@ -314,7 +328,9 @@ QPair<QWidget *, QWidget *> createComboBoxOptionHandle(QObject *opt)
+     auto rightWidget = new ComboBox();
+     rightWidget->setFocusPolicy(Qt::StrongFocus);
+     rightWidget->setObjectName("OptionLineEdit");
++#ifndef QT_NO_ACCESSIBILITY
+     rightWidget->setAccessibleName("OptionComboBox");
++#endif
+ 
+     auto initComboxList = [ = ](const QStringList & data) {
+         for (auto item : data) {
+@@ -406,7 +422,9 @@ QPair<QWidget *, QWidget *> createButtonGroupOptionHandle(QObject *opt)
+ 
+     auto rightWidget = new DButtonBox();
+     rightWidget->setObjectName("OptionButtonBox");
++#ifndef QT_NO_ACCESSIBILITY
+     rightWidget->setAccessibleName("OptionButtonBox");
++#endif
+     rightWidget->setButtonList(btnList, true);
+     rightWidget->setMaximumWidth(60 * btnList.count());
+     btnList.at(option->value().toInt())->setChecked(true);
+@@ -435,7 +453,9 @@ QPair<QWidget *, QWidget *> createRadioGroupOptionHandle(QObject *opt)
+     auto rightWidget = new QGroupBox;
+     rightWidget->setContentsMargins(0, 0, 0, 0);
+     rightWidget->setObjectName("OptionRadioGroup");
++#ifndef QT_NO_ACCESSIBILITY
+     rightWidget->setAccessibleName("OptionRadioGroup");
++#endif
+     rightWidget->setAlignment(Qt::AlignLeft);
+     rightWidget->setFlat(true);
+     rightWidget->setMinimumHeight(24 * items.length() + 8);
+@@ -449,7 +469,9 @@ QPair<QWidget *, QWidget *> createRadioGroupOptionHandle(QObject *opt)
+         // fix 加大字体后显示截断，不应该 fixedheight
+         rb->setMinimumHeight(24);
+         rb->setProperty("_dtk_widget_settings_radiogroup_index", index);
++#ifndef QT_NO_ACCESSIBILITY
+         rb->setAccessibleName(QString("OptionRadioButtonAt").append(QString::number(items.indexOf(item) + 1)));
++#endif
+         rgLayout->addWidget(rb);
+         ++index;
+ 
+@@ -484,7 +506,9 @@ QPair<QWidget *, QWidget *> createSpinButtonOptionHandle(QObject *opt)
+     auto rightWidget = new QSpinBox();
+     rightWidget->setButtonSymbols(QAbstractSpinBox::PlusMinus);
+     rightWidget->setObjectName("OptionDSpinBox");
++#ifndef QT_NO_ACCESSIBILITY
+     rightWidget->setAccessibleName("OptionDSpinBox");
++#endif
+     if (option->data("max").isValid()) {
+         rightWidget->setMaximum(option->data("max").toInt());
+     }
+@@ -515,7 +539,9 @@ QPair<QWidget *, QWidget *> createSliderOptionHandle(QObject *opt)
+     auto option = qobject_cast<DTK_CORE_NAMESPACE::DSettingsOption *>(opt);
+     auto rightWidget = new QSlider();
+     rightWidget->setObjectName("OptionQSlider");
++#ifndef QT_NO_ACCESSIBILITY
+     rightWidget->setAccessibleName("OptionQSlider");
++#endif
+     rightWidget->setOrientation(Qt::Horizontal);
+     rightWidget->setMaximum(option->data("max").toInt());
+     rightWidget->setMinimum(option->data("min").toInt());
+@@ -543,7 +569,9 @@ QPair<QWidget *, QWidget *> createSwitchButton(QObject *opt)
+     auto option = qobject_cast<DTK_CORE_NAMESPACE::DSettingsOption *>(opt);
+     auto rightWidget = new DSwitchButton();
+     rightWidget->setObjectName("OptionDSwitchButton");
++#ifndef QT_NO_ACCESSIBILITY
+     rightWidget->setAccessibleName("OptionDSwitchButton");
++#endif
+     rightWidget->setChecked(option->value().toBool());
+ 
+     auto translateContext = opt->property(PRIVATE_PROPERTY_translateContext).toByteArray();
+@@ -562,7 +590,9 @@ QPair<QWidget *, QWidget *> createSwitchButton(QObject *opt)
+ 
+     QWidget *widget = new  QWidget();
+     QHBoxLayout *layout = new QHBoxLayout(widget);
++#ifndef QT_NO_ACCESSIBILITY
+     widget->setAccessibleName("OptionDSwitchButtonWidget");
++#endif
+     layout->setContentsMargins(0, 0, 0, 0);
+     layout->addWidget(rightWidget, 0, Qt::AlignRight);
+ 
+@@ -577,7 +607,9 @@ QPair<QWidget *, QWidget *> createTitle1(QObject *opt)
+ 
+     auto title = new ContentTitle;
+     title->setTitle(trName);
++#ifndef QT_NO_ACCESSIBILITY
+     title->setAccessibleName(trName);
++#endif
+     title->label()->setForegroundRole(QPalette::BrightText);
+     DFontSizeManager::instance()->bind(title, DFontSizeManager::T4, QFont::Medium);
+ 
+@@ -591,7 +623,9 @@ QPair<QWidget *, QWidget *> createTitle2(QObject *opt)
+     auto trName = DWIDGET_NAMESPACE::tr(translateContext, option->value().toString().toLocal8Bit().constData());
+ 
+     auto title = new ContentTitle;
++#ifndef QT_NO_ACCESSIBILITY
+     title->setAccessibleName(trName);
++#endif
+     title->setTitle(trName);
+     DFontSizeManager::instance()->bind(title, DFontSizeManager::T5, QFont::Medium);
+ 
+@@ -604,7 +638,9 @@ QWidget *createUnsupportHandle(QObject *opt)
+     auto rightWidget = new QLabel();
+     rightWidget->setFixedHeight(24);
+     rightWidget->setObjectName("OptionUnsupport");
++#ifndef QT_NO_ACCESSIBILITY
+     rightWidget->setAccessibleName("OptionUnsupport");
++#endif
+     rightWidget->setText("Unsupport option type: " + option->viewType());
+     rightWidget->setWordWrap(true);
+ 
+diff --git a/src/widgets/dslider.cpp b/src/widgets/dslider.cpp
+index e0692ea4..46de0049 100644
+--- a/src/widgets/dslider.cpp
++++ b/src/widgets/dslider.cpp
+@@ -708,7 +708,9 @@ void DSliderPrivate::init()
+     }
+     slider->setTickPosition(QSlider::NoTicks);
+     slider->installEventFilter(q);
++#ifndef QT_NO_ACCESSIBILITY
+     slider->setAccessibleName("DSliderSpecialSlider");
++#endif
+ }
+ 
+ QSize SliderStrip::sizeHint() const
+diff --git a/src/widgets/dspinbox.cpp b/src/widgets/dspinbox.cpp
+index 08543636..9f4fb159 100644
+--- a/src/widgets/dspinbox.cpp
++++ b/src/widgets/dspinbox.cpp
+@@ -21,7 +21,9 @@ void DSpinBoxPrivate::init()
+     D_Q(DSpinBox);
+ 
+     lineEdit = new DLineEdit(q);
++#ifndef QT_NO_ACCESSIBILITY
+     lineEdit->setAccessibleName("DSpinBoxChildDLineEdit");
++#endif
+     lineEdit->setClearButtonEnabled(false);
+     q->setLineEdit(lineEdit->lineEdit());
+     q->connect(lineEdit, &DLineEdit::alertChanged, q, &DSpinBox::alertChanged);
+diff --git a/src/widgets/dswitchlineexpand.cpp b/src/widgets/dswitchlineexpand.cpp
+index f761d385..6a1b8b9d 100644
+--- a/src/widgets/dswitchlineexpand.cpp
++++ b/src/widgets/dswitchlineexpand.cpp
+@@ -31,7 +31,9 @@ DSwitchHeaderLine::DSwitchHeaderLine(QWidget *parent) :
+     DHeaderLine(parent)
+ {
+     m_switchButton = new DSwitchButton(this);
++#ifndef QT_NO_ACCESSIBILITY
+     m_switchButton->setAccessibleName("DSwitchHeaderLineSwitchButton");
++#endif
+     connect(m_switchButton, &DSwitchButton::checkedChanged, this, &DSwitchHeaderLine::checkedChanged);
+     setContent(m_switchButton);
+ }
+@@ -70,7 +72,9 @@ void DSwitchHeaderLine::mousePressEvent(QMouseEvent *)
+ DSwitchLineExpand::DSwitchLineExpand(QWidget *parent) : DDrawer(parent) {
+     m_headerLine = new DSwitchHeaderLine(this);
+     m_headerLine->setExpand(expand());
++#ifndef QT_NO_ACCESSIBILITY
+     m_headerLine->setAccessibleName("DSwitchLineExpandHeaderLine");
++#endif
+     connect(m_headerLine, &DSwitchHeaderLine::checkedChanged,
+             [=](bool arg) { DDrawer::setExpand(arg); });
+     setHeader(m_headerLine);
+diff --git a/src/widgets/dtabbar.cpp b/src/widgets/dtabbar.cpp
+index 1e38310a..66709bea 100644
+--- a/src/widgets/dtabbar.cpp
++++ b/src/widgets/dtabbar.cpp
+@@ -132,7 +132,9 @@ public:
+ 
+         addButton = new DIconButton(DStyle::SP_IncreaseElement, qq);
+         addButton->setObjectName("AddButton");
++#ifndef QT_NO_ACCESSIBILITY
+         addButton->setAccessibleName("DTabBarAddButton");
++#endif
+         addButton->installEventFilter(this);
+ 
+         connect(addButton, &DIconButton::clicked,
+diff --git a/src/widgets/dtitlebar.cpp b/src/widgets/dtitlebar.cpp
+index 0e010354..0db4b44f 100644
+--- a/src/widgets/dtitlebar.cpp
++++ b/src/widgets/dtitlebar.cpp
+@@ -227,27 +227,39 @@ void DTitlebarPrivate::init()
+     optionButton->installEventFilter(q);
+ 
+     optionButton->setObjectName("DTitlebarDWindowOptionButton");
++#ifndef QT_NO_ACCESSIBILITY
+     optionButton->setAccessibleName("DTitlebarDWindowOptionButton");
++#endif
+     minButton->setObjectName("DTitlebarDWindowMinButton");
++#ifndef QT_NO_ACCESSIBILITY
+     minButton->setAccessibleName("DTitlebarDWindowMinButton");
++#endif
+     maxButton->setObjectName("DTitlebarDWindowMaxButton");
++#ifndef QT_NO_ACCESSIBILITY
+     maxButton->setAccessibleName("DTitlebarDWindowMaxButton");
++#endif
+     maxButton->setAttribute(Qt::WA_AlwaysShowToolTips);
+     closeButton->setObjectName("DTitlebarDWindowCloseButton");
++#ifndef QT_NO_ACCESSIBILITY
+     closeButton->setAccessibleName("DTitlebarDWindowCloseButton");
++#endif
+ 
+ 
+     iconLabel->setWindowFlags(Qt::WindowTransparentForInput);
+     iconLabel->setAttribute( Qt::WA_TransparentForMouseEvents, true);
+     iconLabel->setFocusPolicy(Qt::NoFocus);
++#ifndef QT_NO_ACCESSIBILITY
+     iconLabel->setAccessibleName("DTitlebarIconLabel");
++#endif
+     iconLabel->setFlat(true);
+     // 默认无图标，所以隐藏
+     iconLabel->hide();
+ 
+     leftArea->setWindowFlag(Qt::WindowTransparentForInput);
+     leftArea->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
++#ifndef QT_NO_ACCESSIBILITY
+     leftArea->setAccessibleName("DTitlebarLeftArea");
++#endif
+     leftLayout->setContentsMargins(0, 0, 0, 0);
+ 
+     centerLayout->setContentsMargins(0, 0, 0, 0);
+@@ -257,11 +269,15 @@ void DTitlebarPrivate::init()
+     centerArea->setAutoFillBackground(false);
+     centerArea->setBackgroundRole(QPalette::NoRole);
+     centerArea->setAlignment(Qt::AlignCenter);
++#ifndef QT_NO_ACCESSIBILITY
+     centerArea->setAccessibleName("DTitlebarCenterArea");
++#endif
+ 
+     buttonArea->setWindowFlag(Qt::WindowTransparentForInput);
+     buttonArea->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
++#ifndef QT_NO_ACCESSIBILITY
+     buttonArea->setAccessibleName("DTitlebarButtonArea");
++#endif
+     QHBoxLayout *buttonLayout = new QHBoxLayout(buttonArea);
+     buttonLayout->setContentsMargins(0, 0, 0, 0);
+     buttonLayout->setSpacing(0);
+@@ -272,7 +288,9 @@ void DTitlebarPrivate::init()
+         quitFullButton  = new DWindowQuitFullButton;
+         quitFullButton->installEventFilter(q);
+         quitFullButton->setObjectName("DTitlebarDWindowQuitFullscreenButton");
++#ifndef QT_NO_ACCESSIBILITY
+         quitFullButton->setAccessibleName("DTitlebarDWindowQuitFullscreenButton");
++#endif
+         quitFullButton->hide();
+         buttonLayout->addWidget(quitFullButton);
+     }
+@@ -280,7 +298,9 @@ void DTitlebarPrivate::init()
+ 
+     rightArea->setWindowFlag(Qt::WindowTransparentForInput);
+     rightArea->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
++#ifndef QT_NO_ACCESSIBILITY
+     rightArea->setAccessibleName("DTitlebarRightArea");
++#endif
+     rightLayout->setContentsMargins(0, 0, 0, 0);
+     auto rightAreaLayout = new QHBoxLayout(rightArea);
+     rightAreaLayout->setContentsMargins(0, 0, 0, 0);
+@@ -290,12 +310,16 @@ void DTitlebarPrivate::init()
+     rightAreaLayout->addWidget(buttonArea);
+ 
+     separatorTop->setFixedHeight(1);
++#ifndef QT_NO_ACCESSIBILITY
+     separatorTop->setAccessibleName("DTitlebarTopHorizontalLine");
++#endif
+     separatorTop->hide();
+     separatorTop->setWindowFlags(Qt::WindowTransparentForInput);
+ 
+     separator->setFixedHeight(1);
++#ifndef QT_NO_ACCESSIBILITY
+     separator->setAccessibleName("DTitlebarHorizontalLine");
++#endif
+     separator->hide();
+     separator->setWindowFlags(Qt::WindowTransparentForInput);
+ 
+@@ -638,7 +662,9 @@ void DTitlebarPrivate::_q_addDefaultMenuItems()
+         bool disableDtkSwitchThemeMenu = qEnvironmentVariableIsSet("KLU_DISABLE_MENU_THEME");
+         if (!disableDtkSwitchThemeMenu) {
+             switchThemeMenu = new QMenu(qApp->translate("TitleBarMenu", "Theme"), menu);
++#ifndef QT_NO_ACCESSIBILITY
+             switchThemeMenu->setAccessibleName("DTitlebarThemeMenu");
++#endif
+             lightThemeAction = switchThemeMenu->addAction(qApp->translate("TitleBarMenu", "Light Theme"));
+             darkThemeAction = switchThemeMenu->addAction(qApp->translate("TitleBarMenu", "Dark Theme"));
+             autoThemeAction = switchThemeMenu->addAction(qApp->translate("TitleBarMenu", "System Theme"));
+@@ -955,7 +981,9 @@ void DTitlebar::setMenu(QMenu *menu)
+ 
+     d->menu = menu;
+     if (d->menu) {
++#ifndef QT_NO_ACCESSIBILITY
+         d->menu->setAccessibleName("DTitlebarMainMenu");
++#endif
+         disconnect(this, &DTitlebar::optionClicked, 0, 0);
+         connect(this, &DTitlebar::optionClicked, this, &DTitlebar::showMenu);
+ 
+@@ -1292,7 +1320,9 @@ void DTitlebar::setSidebarHelper(DSidebarHelper *helper)
+         bgBlurWidget->setMaskAlpha(229); // 90%
+         hlay->addWidget(bgBlurWidget);
+ 
++#ifndef QT_NO_ACCESSIBILITY
+         d->sidebarBackgroundWidget->setAccessibleName("SidebarBackgroundWidget");
++#endif
+         d->sidebarBackgroundWidget->setAutoFillBackground(true);
+         d->sidebarBackgroundWidget->setBackgroundRole(DPalette::Button);
+         d->sidebarBackgroundWidget->move(pos());
+diff --git a/src/widgets/private/settings/content.cpp b/src/widgets/private/settings/content.cpp
+index 08e46ed9..e3b0c980 100644
+--- a/src/widgets/private/settings/content.cpp
++++ b/src/widgets/private/settings/content.cpp
+@@ -67,8 +67,12 @@ Content::Content(QWidget *parent)
+     d->contentArea->setContentsMargins(0, 0, 0, 0);
+     d->contentArea->setWidgetResizable(true);
+     d->contentArea->setFrameShape(QFrame::NoFrame);
++#ifndef QT_NO_ACCESSIBILITY
+     d->contentArea->setAccessibleName("ContentScrollArea");
++#endif
++#ifndef QT_NO_ACCESSIBILITY
+     d->contentArea->viewport()->setAccessibleName("ContentScrollAreaViewPort");
++#endif
+ 
+     // 设置列表支持触屏滚动
+     QScroller::grabGesture(d->contentArea->viewport());
+@@ -80,7 +84,9 @@ Content::Content(QWidget *parent)
+     });
+     d->contentFrame = new QWidget(this);
+     d->contentFrame->setObjectName("SettingsContent");
++#ifndef QT_NO_ACCESSIBILITY
+     d->contentFrame->setAccessibleName("ContentSettingsFrame");
++#endif
+     d->contentLayout = new QVBoxLayout(d->contentFrame);
+     d->contentLayout->setAlignment(Qt::AlignLeft);
+     d->contentLayout->setContentsMargins(0, 0, 10, 0);
+@@ -217,12 +223,16 @@ void Content::updateSettings(const QByteArray &translateContext, QPointer<DTK_CO
+         auto title = new ContentTitle;
+         title->setTitle(trName);
+         title->label()->setForegroundRole(QPalette::BrightText);
++#ifndef QT_NO_ACCESSIBILITY
+         title->setAccessibleName(QString("ContentTitleWidgetFor").append(current_groupKey));
++#endif
+         DFontSizeManager::instance()->bind(title, DFontSizeManager::T4, QFont::Medium);
+ 
+         DWidget *widTile = new DWidget();
+         widTile->setProperty("key", groupKey);
++#ifndef QT_NO_ACCESSIBILITY
+         widTile->setAccessibleName(QString("ContentWidTileFor").append(groupKey));
++#endif
+         QHBoxLayout *hLayTile = new QHBoxLayout(widTile);
+         hLayTile->addWidget(title);
+         d->contentLayout->addWidget(widTile);
+@@ -242,14 +252,18 @@ void Content::updateSettings(const QByteArray &translateContext, QPointer<DTK_CO
+                 auto trName = translateContext.isEmpty() ? QObject::tr(subgroup->name().toStdString().c_str())
+                               : qApp->translate(translateContext.constData(), subgroup->name().toStdString().c_str());
+                 auto title = new ContentTitle;
++#ifndef QT_NO_ACCESSIBILITY
+                 title->setAccessibleName(QString("ContentTitleWidgetFor").append(current_subGroupKey));
++#endif
+                 title->setTitle(trName);
+                 DFontSizeManager::instance()->bind(title, DFontSizeManager::T5, QFont::Medium);
+ 
+                 DWidget *wid = new DWidget();
+                 wid->setProperty("key", subgroup->key());
+                 wid->setProperty("_d_dtk_group_key", current_groupKey);
++#ifndef QT_NO_ACCESSIBILITY
+                 wid->setAccessibleName(QString("ContentWidgetFor").append(current_subGroupKey));
++#endif
+                 QHBoxLayout *hLay = new QHBoxLayout(wid);
+                 hLay->setContentsMargins(10, 0, 0, 0);
+                 hLay->addWidget(title);
+@@ -299,7 +313,9 @@ void Content::updateSettings(const QByteArray &translateContext, QPointer<DTK_CO
+                     if (widget.second) {
+                         hLay->addWidget(widget.second, 3);
+                     }
++#ifndef QT_NO_ACCESSIBILITY
+                     wrapperWidget->setAccessibleName(QString("CustomWidgetAtContentRow%1BackgroundRow%2").arg(d->contentLayout->count()).arg(bgGpLayout->count()));
++#endif
+ 
+                     if (widget.first) {
+                         widget.first->setProperty("_d_dtk_group_key", current_subGroupKey);
+@@ -314,7 +330,9 @@ void Content::updateSettings(const QByteArray &translateContext, QPointer<DTK_CO
+                     if (widget) {
+                         widget->setProperty("_d_dtk_group_key", current_subGroupKey);
+                         hLay->addWidget(widget);
++#ifndef QT_NO_ACCESSIBILITY
+                         wrapperWidget->setAccessibleName(QString("DefaultWidgetAtContentRow%1BackgroundRow%2").arg(d->contentLayout->count()).arg(bgGpLayout->count()));
++#endif
+                     }
+                 }
+                 bgGpLayout->addWidget(wrapperWidget);
+@@ -331,10 +349,14 @@ void Content::updateSettings(const QByteArray &translateContext, QPointer<DTK_CO
+     resetBt->setObjectName("SettingsContentReset");
+     resetBt->setMaximumWidth(300);
+     resetBt->setAutoDefault(false);
++#ifndef QT_NO_ACCESSIBILITY
+     resetBt->setAccessibleName("ContentSettingsResetButton");
++#endif
+     box_layout->addWidget(resetBt);
+     box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
++#ifndef QT_NO_ACCESSIBILITY
+     box->setAccessibleName("ContentBottomWidget");
++#endif
+ 
+     d->contentLayout->addWidget(box);
+ 
+diff --git a/src/widgets/private/settings/navigation.cpp b/src/widgets/private/settings/navigation.cpp
+index 2d645d8d..60de137d 100644
+--- a/src/widgets/private/settings/navigation.cpp
++++ b/src/widgets/private/settings/navigation.cpp
+@@ -74,7 +74,9 @@ Navigation::Navigation(QWidget *parent) :
+ 
+     d->navbar = new DListView(this);
+     d->navbar->setObjectName("NavigationBar");
++#ifndef QT_NO_ACCESSIBILITY
+     d->navbar->setAccessibleName("NavigationBar");
++#endif
+     d->navbar->setContentsMargins(0, 0, 0, 0);
+     d->navbar->setAutoFillBackground(true);
+     d->navbar->setViewportMargins(10, 0, 10, 0);
+diff --git a/src/widgets/widgets.cmake b/src/widgets/widgets.cmake
+index 54d7897a..d71ea39e 100644
+--- a/src/widgets/widgets.cmake
++++ b/src/widgets/widgets.cmake
+@@ -8,6 +8,10 @@ file(GLOB NOTIFICATIONS ${CMAKE_CURRENT_LIST_DIR}/private/startupnotifications/*
+ file(GLOB KEYBOARD ${CMAKE_CURRENT_LIST_DIR}/private/keyboardmonitor/*)
+ file(GLOB_RECURSE RESOURCES ${CMAKE_CURRENT_LIST_DIR}/*.qrc)
+ 
++# 使用FILTER命令排除包含特定字符串的文件
++list(FILTER WIDGETS_PRIVATE_HEADERS EXCLUDE REGEX ".*dprint.*")
++list(FILTER WIDGETS_SOURCES EXCLUDE REGEX ".*dprint.*")
++
+ if (DTK_VERSION_MAJOR EQUAL 6)
+   list(REMOVE_ITEM UTIL_SOURCES
+         ${CMAKE_CURRENT_LIST_DIR}/dapplicationhelper.cpp)
