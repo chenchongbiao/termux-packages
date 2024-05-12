@@ -1,0 +1,10 @@
+TERMUX_PKG_HOMEPAGE=http://www.deepin.org/
+TERMUX_PKG_DESCRIPTION="Deepin Internationalization utilities"
+TERMUX_PKG_LICENSE="GPL-2.0"
+TERMUX_PKG_MAINTAINER="bluesky <chenchongbiao@deepin.org>"
+TERMUX_PKG_VERSION=1.0.6
+TERMUX_PKG_SRCURL="https://github.com/linuxdeepin/${TERMUX_PKG_NAME}/archive/refs/tags/${TERMUX_PKG_VERSION}.tar.gz"
+TERMUX_PKG_SHA256=86ea3b8a789ec6121d401f12a2193f8ec5a8e4fdab232ae3d3b1d6c970571779
+TERMUX_PKG_DEPENDS="gettext"
+TERMUX_PKG_BUILD_IN_SRC=true
+TERMUX_PKG_EXTRA_MAKE_ARGS="PREFIX=$TERMUX_PREFIX"
