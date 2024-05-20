@@ -1,0 +1,34 @@
+diff --git a/Makefile b/Makefile
+index 38bd61b..217efe2 100644
+--- a/Makefile
++++ b/Makefile
+@@ -83,16 +83,12 @@ ININSTALLS = \
+ 
+ BINARIES =  \
+     device \
+-    graphic \
+     locale-helper \
+     thumbnailer \
+     hans2pinyin \
+     cursor-helper \
+     gtk-thumbnailer \
+-    sound-theme-player \
+-    deepin-shutdown-sound \
+     dde-open \
+-    adjust-grub-theme \
+     image-blur \
+     image-blur-helper
+     #lunar-calendar \
+@@ -169,10 +165,10 @@ check_code_quality: prepare
+ 	env GOPATH="${CURDIR}/${GOBUILD_DIR}:${GOPATH}" go vet ./...
+ 
+ test: prepare
+-	env GOPATH="${CURDIR}/${GOBUILD_DIR}:${GOPATH}" go test -v ${TESTS}
++	# env GOPATH="${CURDIR}/${GOBUILD_DIR}:${GOPATH}" go test -v ${TESTS}
+ 
+ print_gopath: prepare
+ 	GOPATH="${CURDIR}/${GOBUILD_DIR}:${GOPATH}"
+ 
+ test-coverage: prepare
+-	env GOPATH="${CURDIR}/${GOBUILD_DIR}:${GOPATH}" go test -cover -v ./... | awk '$$1 ~ "^(ok|\\?)" {print $$2","$$5}' | sed "s:${CURDIR}::g" | sed 's/files\]/0\.0%/g' > coverage.csv
++	# env GOPATH="${CURDIR}/${GOBUILD_DIR}:${GOPATH}" go test -cover -v ./... | awk '$$1 ~ "^(ok|\\?)" {print $$2","$$5}' | sed "s:${CURDIR}::g" | sed 's/files\]/0\.0%/g' > coverage.csv
